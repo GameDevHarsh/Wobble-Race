@@ -16,10 +16,11 @@ public class gameManager : MonoBehaviourPunCallbacks
     private GameObject panel;
     public TextMeshProUGUI WinnerName;
     public GameObject namePanel;
-    private float timeCount = 0;
+    private float timeCount = 1;
     public Button startButon;
     public bool move = false;
     public static gameManager instance;
+    private bool startCountdown = false;
     void Start()
     {
         instance = this;
@@ -29,6 +30,7 @@ public class gameManager : MonoBehaviourPunCallbacks
         PhotonNetwork.Instantiate(plprefab.name, spawnPoints[spawnpointIndex].transform.position, Quaternion.identity);
         spawnPoints.RemoveAt(spawnpointIndex);
         startButon.interactable = false;
+        textRef.gameObject.SetActive(false);
     }
     private void Update()
     {
@@ -36,20 +38,31 @@ public class gameManager : MonoBehaviourPunCallbacks
         {
             startButon.interactable = true;
         }
+        if(startCountdown)
+        {
+            StartCountDown();
+        }
     }
-    private void StartCountDown()
+    public void startCount()
+    {
+        startCountdown = true;
+    }
+    public void StartCountDown()
     {
         timeCount += 1*Time.deltaTime;
+        textRef.gameObject.SetActive(true);
         textRef.text = timeCount.ToString("0");
         if (timeCount > 3)
         {
             panel.SetActive(false);
             move = true;
+            if (PhotonNetwork.IsMasterClient)
+            {
+                PhotonNetwork.CurrentRoom.IsOpen = false; // Prevent new players from joining
+            }
+            startCountdown = false;
         }
-        if (PhotonNetwork.IsMasterClient)
-        {
-            PhotonNetwork.CurrentRoom.IsOpen = false; // Prevent new players from joining
-        }
+        
     }
     public void Restart()
     {

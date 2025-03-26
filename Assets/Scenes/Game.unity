@@ -5037,7 +5037,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 126016821}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 825525632}
+        m_TargetAssemblyTypeName: gameManager, Assembly-CSharp
+        m_MethodName: startCount
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &126016821
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -37642,7 +37654,7 @@ MonoBehaviour:
   panel: {fileID: 586088874}
   WinnerName: {fileID: 1323351615}
   namePanel: {fileID: 1925465542}
-  startButon: {fileID: 0}
+  startButon: {fileID: 126016820}
   move: 0
 --- !u!4 &825525633
 Transform:
