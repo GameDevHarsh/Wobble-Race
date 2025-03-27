@@ -122,11 +122,20 @@ public class PlayerMovement : MonoBehaviourPunCallbacks
     {
         if (other.gameObject.tag == "Door")
         {
-            gameManager.instance.namePanel.SetActive(true);
-            gameManager.instance.WinnerName.text = view.Owner.NickName;
-            Cursor.lockState = CursorLockMode.None;
+            PhotonView photonView = GetComponent<PhotonView>();
+            if (photonView.IsMine)
+            {
+                photonView.RPC("ShowWinnerPanel", RpcTarget.All, PhotonNetwork.NickName);
+            }
             this.enabled = false;
             
         }
+    }
+    [PunRPC]
+    private void ShowWinnerPanel(string winnerName)
+    {
+        gameManager.instance.namePanel.SetActive(true);
+        gameManager.instance.WinnerName.text = winnerName;
+        Cursor.lockState = CursorLockMode.None;
     }
 }

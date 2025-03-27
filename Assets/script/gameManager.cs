@@ -1,4 +1,5 @@
 using Photon.Pun;
+using Photon.Realtime;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -10,62 +11,132 @@ public class gameManager : MonoBehaviourPunCallbacks
     public List<Transform> spawnPoints;
     private int spawnpointIndex;
     public GameObject plprefab;
-    [SerializeField]
-    private TextMeshProUGUI textRef;
-    [SerializeField]
-    private GameObject panel;
+    [SerializeField] private TextMeshProUGUI textRef;
+    [SerializeField] private GameObject panel;
     public TextMeshProUGUI WinnerName;
     public GameObject namePanel;
-    private float timeCount = 1;
-    public Button startButon;
+    private float timeCount = 0;
+    public Button startButton;
     public bool move = false;
     public static gameManager instance;
     private bool startCountdown = false;
+    PhotonView photonView;
+    private bool cursorLocked = true; // Track cursor state
+    private GameObject player;
+    private PlayerController controller;
     void Start()
     {
         instance = this;
         namePanel.SetActive(false);
         panel.SetActive(true);
-        spawnpointIndex = Random.Range(0, spawnPoints.Count - 1);
-        PhotonNetwork.Instantiate(plprefab.name, spawnPoints[spawnpointIndex].transform.position, Quaternion.identity);
-        spawnPoints.RemoveAt(spawnpointIndex);
-        startButon.interactable = false;
+        startButton.interactable = false;
         textRef.gameObject.SetActive(false);
+
+        // Spawn player at a random spawn point
+        spawnpointIndex = Random.Range(0, spawnPoints.Count);
+        player=PhotonNetwork.Instantiate(plprefab.name, spawnPoints[spawnpointIndex].position, Quaternion.identity);
+        controller=player.GetComponentInChildren<PlayerController>();
+        photonView=GetComponent <PhotonView>();
+        spawnPoints.RemoveAt(spawnpointIndex);
     }
+
     private void Update()
     {
-        if (PhotonNetwork.CountOfPlayers > 1)
+        startButton.interactable = PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount > 1;
+
+        if (startCountdown)
         {
-            startButon.interactable = true;
+            timeCount += Time.deltaTime;
+            textRef.gameObject.SetActive(true);
+            textRef.text = timeCount.ToString("0");
+
+            if (timeCount > 3)
+            {
+                // Call RPC to disable the panel and allow movement for all players
+                photonView.RPC("DisablePanelForAll", RpcTarget.All);
+
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    PhotonNetwork.CurrentRoom.IsOpen = false; // Prevent new players from joining
+                }
+
+                startCountdown = false;
+            }
         }
-        if(startCountdown)
+        HandleCursorLock();
+    }
+
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        startButton.interactable = PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount > 1;
+    }
+
+    public override void OnPlayerLeftRoom(Player otherPlayer)
+    {
+        startButton.interactable = PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount > 1;
+    }
+
+    public void StartCount()
+    {
+        if (PhotonNetwork.IsMasterClient)
         {
-            StartCountDown();
+            // Start countdown for all players
+            photonView.RPC("StartCountdownRPC", RpcTarget.All);
         }
     }
-    public void startCount()
+
+    [PunRPC]
+    private void StartCountdownRPC()
     {
         startCountdown = true;
-    }
-    public void StartCountDown()
-    {
-        timeCount += 1*Time.deltaTime;
+        timeCount = 1;  // Reset the countdown
         textRef.gameObject.SetActive(true);
-        textRef.text = timeCount.ToString("0");
-        if (timeCount > 3)
-        {
-            panel.SetActive(false);
-            move = true;
-            if (PhotonNetwork.IsMasterClient)
-            {
-                PhotonNetwork.CurrentRoom.IsOpen = false; // Prevent new players from joining
-            }
-            startCountdown = false;
-        }
-        
     }
+
+    [PunRPC]
+    private void DisablePanelForAll()
+    {
+        panel.SetActive(false);
+        move = true;
+        cursorLocked = false;
+    }
+
     public void Restart()
     {
         SceneManager.LoadScene("Lobby");
+    }
+    private void HandleCursorLock()
+    {
+        // Lock the cursor when clicking on the game
+        if (Input.GetMouseButtonDown(0) && !cursorLocked)
+        {
+            LockCursor();
+        }
+
+        // Unlock the cursor when pressing Escape
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            UnlockCursor();
+        }
+    }
+
+    private void LockCursor()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        controller.curserlocked = true;
+        cursorLocked = true;
+    }
+
+    private void UnlockCursor()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        controller.curserlocked = false;
+        cursorLocked = false;
+    }
+    private void OnApplicationQuit()
+    {
+        Destroy(player);
     }
 }

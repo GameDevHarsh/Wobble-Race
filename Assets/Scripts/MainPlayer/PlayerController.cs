@@ -39,7 +39,8 @@ public class PlayerController : MonoBehaviour
     JointDrive inAirDrive;
     JointDrive hipsInAirDrive;
     public GameObject focuspoint;
-    private bool curserlocked;
+    [HideInInspector]
+    public bool curserlocked=false;
     public TextMeshProUGUI name_text;
     private string playername;
     private PhotonView view;
@@ -67,7 +68,6 @@ public class PlayerController : MonoBehaviour
         view = GetComponent<PhotonView>();
         playername = view.Owner.NickName;
         name_text.text = playername;
-
     }
     void Update()
     {
@@ -97,14 +97,24 @@ public class PlayerController : MonoBehaviour
     {
         if (other.gameObject.tag == "Door")
         {
-            gameManager.instance.namePanel.SetActive(true);
-            gameManager.instance.WinnerName.text = view.Owner.NickName;
-            Cursor.lockState = CursorLockMode.None;
-            this.enabled = false;
+            PhotonView photonView = GetComponent<PhotonView>();
+            if (photonView.IsMine)
+            {
+                photonView.RPC("ShowWinnerPanel", RpcTarget.All, PhotonNetwork.NickName);
+            }
+
+            this.enabled = false; // Disable further movement
 
         }
     }
 
+    [PunRPC]
+    private void ShowWinnerPanel(string winnerName)
+    {
+        gameManager.instance.namePanel.SetActive(true);
+        gameManager.instance.WinnerName.text = winnerName;
+        Cursor.lockState = CursorLockMode.None;
+    }
     void SetPlayerInputs()
     {
         horizontal = Input.GetAxis("Horizontal");
@@ -190,7 +200,6 @@ public class PlayerController : MonoBehaviour
     }
     void MouseLook()
     {
-        if (Input.GetKeyDown(KeyCode.Escape)) curserlocked = (curserlocked) ? false : true;
         Cursor.lockState = curserlocked ? CursorLockMode.Locked : CursorLockMode.None;
         if (curserlocked)
         {
