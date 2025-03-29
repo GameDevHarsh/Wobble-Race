@@ -2,6 +2,9 @@
 
 Wobble Race is a fun and chaotic **multiplayer maze game** built with **Unity** and **Photon PUN 2**. Players control wobbly ragdoll characters and navigate through a challenging maze to find the shortest path to the exit. The first player to escape wins!
 
+## 📽 Gameplay Video
+https://github.com/user-attachments/assets/67554d7d-3ea7-4f49-9705-5e5de6b28c71
+
 ## 🛠 Features
 
 - 🎮 **Multiplayer Support** – Uses **Photon PUN 2** for seamless online matchmaking.
