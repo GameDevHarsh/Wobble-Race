@@ -20,3 +20,8 @@ https://github.com/user-attachments/assets/67554d7d-3ea7-4f49-9705-5e5de6b28c71
 3. Once **at least two players** are in the room, the game starts.
 4. **Navigate the maze** and find the shortest path to the exit.
 5. The **first player to escape wins**! 🏆
+
+## Installation
+1. **Download** the game from https://drive.google.com/file/d/1b6qxNxPznd9xlmO6gq-OqoxcQR5D2G8H/view?usp=drive_link.
+2. Run the game executable.
+3. Enjoy the immersive experience of **Wobble-Race**!
